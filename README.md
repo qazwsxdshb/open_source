@@ -93,7 +93,6 @@ SysMon/
 │   ├── monitor.py
 │   └── dashboard.py
 │
-├── docs/
 │
 └── README.md
 ```
