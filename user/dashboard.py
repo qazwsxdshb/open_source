@@ -1,51 +1,8 @@
+import argparse
 import curses
 import time
-import re
 
-
-CPU_FILE = "/proc/sysmon/cpu"
-MEM_FILE = "/proc/sysmon/mem"
-PROC_FILE = "/proc/sysmon/procs"
-
-
-def read_file(path):
-    try:
-        with open(path, "r") as f:
-            return f.read().strip()
-    except:
-        return "N/A"
-
-
-def get_cpu_usage():
-    text = read_file(CPU_FILE)
-
-    match = re.search(r'(\d+)', text)
-
-    if match:
-        return int(match.group(1))
-
-    return 0
-
-
-def get_mem_usage():
-    text = read_file(MEM_FILE)
-
-    total = 0
-    used = 0
-
-    for line in text.splitlines():
-
-        if "Total Memory" in line:
-            total = int(line.split()[-2])
-
-        elif "Used Memory" in line:
-            used = int(line.split()[-2])
-
-    return total, used
-
-
-def get_process_info():
-    return read_file(PROC_FILE)
+from sysmon_data import collect_snapshot, write_snapshot_csv
 
 
 def progress_bar(percent, width=30):
@@ -67,7 +24,19 @@ def get_color(percent):
         return curses.color_pair(3)
 
 
-def draw_dashboard(stdscr):
+def parse_args():
+    parser = argparse.ArgumentParser(description="SysMon curses dashboard")
+    parser.add_argument("--csv", help="write snapshots to the given CSV file")
+    parser.add_argument(
+        "--csv-once",
+        action="store_true",
+        help="write one CSV snapshot and exit",
+    )
+
+    return parser.parse_args()
+
+
+def draw_dashboard(stdscr, csv_path=None):
     curses.curs_set(0)
 
     curses.start_color()
@@ -86,18 +55,16 @@ def draw_dashboard(stdscr):
 
         height, width = stdscr.getmaxyx()
 
-        cpu = get_cpu_usage()
+        snapshot = collect_snapshot()
 
-        total_mem, used_mem = get_mem_usage()
+        if csv_path:
+            write_snapshot_csv(csv_path, snapshot, append=True)
 
-        mem_percent = 0
-
-        if total_mem > 0:
-            mem_percent = int(
-                used_mem * 100 / total_mem
-            )
-
-        proc_info = get_process_info()
+        cpu = snapshot["cpu_percent"]
+        total_mem = snapshot["mem_total_mb"]
+        used_mem = snapshot["mem_used_mb"]
+        mem_percent = snapshot["mem_percent"]
+        proc_info = snapshot["process_info"]
 
         stdscr.addstr(
             1,
@@ -156,5 +123,11 @@ def draw_dashboard(stdscr):
 
 
 if __name__ == "__main__":
+    args = parse_args()
 
-    curses.wrapper(draw_dashboard)
+    if args.csv and args.csv_once:
+        write_snapshot_csv(args.csv, collect_snapshot(), append=False)
+    elif args.csv:
+        curses.wrapper(lambda stdscr: draw_dashboard(stdscr, args.csv))
+    else:
+        curses.wrapper(draw_dashboard)

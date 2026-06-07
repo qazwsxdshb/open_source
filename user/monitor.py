@@ -1,37 +1,9 @@
+import argparse
 import os
-import re
 import time
 
-def read_cpu():
-    with open("/proc/sysmon/cpu") as f:
-        text = f.read()
+from sysmon_data import collect_snapshot, write_snapshot_csv
 
-    match = re.search(r'(\d+)', text)
-
-    if match:
-        return int(match.group(1))
-
-    return 0
-
-
-def read_mem():
-    total = 0
-    used = 0
-
-    with open("/proc/sysmon/mem") as f:
-        for line in f:
-            if "Total Memory" in line:
-                total = int(line.split()[-2])
-
-            elif "Used Memory" in line:
-                used = int(line.split()[-2])
-
-    return total, used
-
-
-def read_proc():
-    with open("/proc/sysmon/procs") as f:
-        return f.read().strip()
 
 
 def bar(percent, width=30):
@@ -40,14 +12,25 @@ def bar(percent, width=30):
     return "[" + "#" * filled + "-" * (width - filled) + "]"
 
 
-while True:
+def parse_args():
+    parser = argparse.ArgumentParser(description="SysMon text monitor")
+    parser.add_argument("--csv", help="write snapshots to the given CSV file")
+    parser.add_argument(
+        "--csv-once",
+        action="store_true",
+        help="write one CSV snapshot and exit",
+    )
+
+    return parser.parse_args()
+
+
+def print_snapshot(snapshot):
+    cpu = snapshot["cpu_percent"]
+    total = snapshot["mem_total_mb"]
+    used = snapshot["mem_used_mb"]
+    mem_percent = snapshot["mem_percent"]
+
     os.system("clear")
-
-    cpu = read_cpu()
-
-    total, used = read_mem()
-
-    mem_percent = int(used * 100 / total)
 
     print("=" * 60)
     print("              SYSMON DASHBOARD")
@@ -61,8 +44,28 @@ while True:
     )
 
     print("\nPROC:")
-    print(read_proc())
+    print(snapshot["process_info"])
 
     print("\nCtrl+C to exit")
 
-    time.sleep(1)
+
+def main():
+    args = parse_args()
+
+    if args.csv and args.csv_once:
+        write_snapshot_csv(args.csv, collect_snapshot(), append=False)
+        return
+
+    while True:
+        snapshot = collect_snapshot()
+
+        if args.csv:
+            write_snapshot_csv(args.csv, snapshot, append=True)
+
+        print_snapshot(snapshot)
+
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()

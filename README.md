@@ -91,9 +91,10 @@ SysMon/
 │
 ├── user/
 │   ├── monitor.py
-│   └── dashboard.py
+│   ├── dashboard.py
+│   └── sysmon_data.py
 │
-│
+├── .gitignore
 └── README.md
 ```
 
@@ -173,6 +174,28 @@ python3 user/monitor.py
 
 This displays system information and refreshes every second.
 
+### CSV Export
+
+Write one CSV snapshot and exit:
+
+```bash
+python3 user/monitor.py --csv sysmon.csv --csv-once
+```
+
+Log one row per refresh while still showing the monitor:
+
+```bash
+python3 user/monitor.py --csv sysmon.csv
+```
+
+The CSV columns are:
+
+```text
+timestamp,cpu_percent,mem_total_mb,mem_used_mb,mem_percent,process_info
+```
+
+The `process_info` column stores the raw `/proc/sysmon/procs` text in a single CSV cell.
+
 ---
 
 ### Dashboard (TUI)
@@ -189,6 +212,13 @@ Features:
 * Colored memory usage indicator
 * Process information display
 * Automatic refresh every second
+
+CSV export is also available from the dashboard:
+
+```bash
+python3 user/dashboard.py --csv sysmon.csv
+python3 user/dashboard.py --csv sysmon.csv --csv-once
+```
 
 Color Scheme:
 
