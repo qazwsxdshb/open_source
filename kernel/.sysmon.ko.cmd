@@ -1,1 +1,0 @@
-cmd_/home/nvidia/Desktop/Sysmon/kernel/sysmon.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000 -z noexecstack   --build-id  -T ./scripts/module-common.lds -o /home/nvidia/Desktop/Sysmon/kernel/sysmon.ko /home/nvidia/Desktop/Sysmon/kernel/sysmon.o /home/nvidia/Desktop/Sysmon/kernel/sysmon.mod.o;  true
