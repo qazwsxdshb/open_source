@@ -1,0 +1,49 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "pico",
+      "displayName": "Raspberry Pi Pico (RP2040)",
+      "description": "Pico SDK + FreeRTOS Debug build using the ARM GNU toolchain",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PICO_BOARD": "pico",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+      }
+    },
+    {
+      "name": "pico2w",
+      "displayName": "Raspberry Pi Pico 2 W (RP2350 ARM)",
+      "description": "Pico SDK + FreeRTOS Debug build using the Cortex-M33 ARM GNU toolchain",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PICO_BOARD": "pico2_w",
+        "PICO_PLATFORM": "rp2350",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "pico",
+      "displayName": "Build Raspberry Pi Pico",
+      "configurePreset": "pico",
+      "jobs": 0
+    },
+    {
+      "name": "pico2w",
+      "displayName": "Build Raspberry Pi Pico 2 W",
+      "configurePreset": "pico2w",
+      "jobs": 0
+    }
+  ]
+}
